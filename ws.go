@@ -81,6 +81,7 @@ type ConfirmData struct {
 type PriceData struct {
 	Timestamp   int64  `json:"ts"` // 毫秒时间戳
 	BlockNumber uint64 `json:"n"`  // 区块号
+	BlockTime   uint64 `json:"bt"` // 区块头时间戳
 	Pair        string `json:"p"`  // 交易对名称
 	R0          string `json:"r0"`
 	R1          string `json:"r1"`

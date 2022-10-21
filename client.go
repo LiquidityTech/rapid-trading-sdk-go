@@ -15,11 +15,13 @@ import (
 	"os"
 	"reflect"
 	"sort"
+	"strconv"
 	"strings"
 	"sync"
 	"time"
 
 	"github.com/gorilla/websocket"
+	"github.com/shopspring/decimal"
 	"github.com/umbracle/ethgo"
 )
 
@@ -363,6 +365,43 @@ func (c *Client) GetPairs(ctx context.Context, req GetPairsReq) (pairs []*Pair, 
 	}
 	_, _, err = c.callAPI(ctx, http.MethodGet, "/api/v1/pairs", q, nil, &pairs)
 	return pairs, err
+}
+
+type OrderResult struct {
+	Id            uint64          `json:"id"` // 任务id
+	Pair          string          `json:"pair"`
+	TokenSymbolIn string          `json:"tokenSymbolIn"`
+	Success       bool            `json:"success"`
+	AmountIn      decimal.Decimal `json:"amountIn"`
+	AmountOut     decimal.Decimal `json:"amountOut"`
+	GasFee        decimal.Decimal `json:"gasFee"`
+	Hash          string          `json:"hash"`
+}
+
+func (c *Client) GetOrderResult(ctx context.Context, orderId uint64) (result *OrderResult, err error) {
+	path := fmt.Sprintf("/api/v1/orders/%s/result", strconv.FormatUint(orderId, 10))
+	result = new(OrderResult)
+	_, _, err = c.callAPI(ctx, http.MethodGet, path, nil, nil, result)
+	if err != nil {
+		return nil, err
+	}
+	return result, nil
+}
+
+type GetTokenBalancesReq struct {
+	Account string
+	Tokens  []string
+}
+
+type TokenBalances map[ethgo.Address]decimal.Decimal
+
+func (c *Client) GetTokenBalances(ctx context.Context, req GetTokenBalancesReq) (balances TokenBalances, err error) {
+	balances = make(TokenBalances)
+	q := url.Values{}
+	q.Set("account", req.Account)
+	q.Set("tokens", strings.Join(req.Tokens, ","))
+	_, _, err = c.callAPI(ctx, http.MethodGet, "/api/v1/chain/token-balances", q, nil, &balances)
+	return balances, err
 }
 
 // StructToMap convert struct to map[string]interface{}

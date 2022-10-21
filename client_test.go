@@ -76,13 +76,13 @@ func TestClient_SubscribeOrderResult(t *testing.T) {
 
 func TestClient_CreateOrder(t *testing.T) {
 	req := CreateOrderReq{
-		Pair:              "WBNB-BUSD@PANCAKESWAP",
+		Pair:              "UNI-BUSD@MDEX",
 		Type:              "pga",
-		TokenSymbolIn:     "WBNB",
-		AmountIn:          "0.1",
-		AmountOutMin:      "10",
-		GasPriceMax:       "100",
-		TargetBlockNumber: 21675044,
+		TokenSymbolIn:     "BUSD",
+		AmountIn:          "29750000000000000000",
+		AmountOutMin:      "0",
+		GasPriceMax:       "100000000000",
+		TargetBlockNumber: 22366972,
 	}
 	resp, err := c.CreateOrder(ctx, req)
 	assert.NoError(t, err)
@@ -118,4 +118,21 @@ func TestClient_CreateOrderByStream(t *testing.T) {
 		assert.Greater(t, resp.Id, uint64(0))
 		t.Logf("resp.Id %v", resp.Id)
 	}
+}
+
+func TestClient_GetOrderResult(t *testing.T) {
+	result, err := c.GetOrderResult(ctx, 7042433021000)
+	assert.NoError(t, err)
+	t.Log(result)
+}
+
+func TestClient_GetTokenBalances(t *testing.T) {
+	req := GetTokenBalancesReq{
+		Account: "0xbe807dddb074639cd9fa61b47676c064fc50d62c",
+		Tokens:  []string{"0x7130d2A12B9BCbFAe4f2634d864A1Ee1Ce3Ead9c", "0xe9e7CEA3DedcA5984780Bafc599bD69ADd087D56", "0x55d398326f99059fF775485246999027B3197955"},
+	}
+	balances, err := c.GetTokenBalances(ctx, req)
+	assert.NoError(t, err)
+	assert.Len(t, balances, len(req.Tokens))
+	t.Log(balances)
 }

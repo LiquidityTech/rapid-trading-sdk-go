@@ -100,6 +100,7 @@ func TestClient_GetPairs(t *testing.T) {
 	pairs, err := c.GetPairs(ctx, req)
 	assert.NoError(t, err)
 	assert.Len(t, pairs, 1)
+	t.Log(pairs[0])
 }
 
 func TestClient_CreateOrderByStream(t *testing.T) {

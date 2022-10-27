@@ -291,7 +291,9 @@ type CreateOrderReq struct {
 	TokenSymbolIn     string `json:"tokenSymbolIn"`
 	AmountIn          string `json:"amountIn"`
 	AmountOutMin      string `json:"amountOutMin"`
+	GasPrice          string `json:"gasPrice"`
 	GasPriceMax       string `json:"gasPriceMax"`
+	TraceTime         string `json:"traceTime"`
 	TargetBlockNumber uint64 `json:"targetBlockNumber"`
 }
 

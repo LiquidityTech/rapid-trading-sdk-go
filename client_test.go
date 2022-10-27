@@ -3,6 +3,7 @@ package rapid
 import (
 	"context"
 	"os"
+	"strconv"
 	"testing"
 	"time"
 
@@ -25,7 +26,6 @@ func TestMain(m *testing.M) {
 }
 
 func setup() {
-
 }
 
 func teardown() {
@@ -79,10 +79,11 @@ func TestClient_CreateOrder(t *testing.T) {
 		Pair:              "UNI-BUSD@MDEX",
 		Type:              "pga",
 		TokenSymbolIn:     "BUSD",
-		AmountIn:          "29750000000000000000",
-		AmountOutMin:      "0",
-		GasPriceMax:       "100000000000",
-		TargetBlockNumber: 22366972,
+		AmountIn:          "2975000000000000000",
+		AmountOutMin:      "0.001",
+		GasPriceMax:       "90000000000",
+		TraceTime:         strconv.FormatInt(time.Now().UnixNano(), 10),
+		TargetBlockNumber: 22534222,
 	}
 	resp, err := c.CreateOrder(ctx, req)
 	assert.NoError(t, err)
@@ -110,7 +111,7 @@ func TestClient_CreateOrderByStream(t *testing.T) {
 		TokenSymbolIn:     "WBNB",
 		AmountIn:          "0.1",
 		AmountOutMin:      "10",
-		GasPriceMax:       "100",
+		GasPriceMax:       "90000000000",
 		TargetBlockNumber: 21675044,
 	}
 	resp, err := c.CreateOrderByStream(req)

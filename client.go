@@ -7,6 +7,7 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -29,6 +30,10 @@ const (
 	baseHTTPURL = "https://rapidtrading-api.liquiditytech.com"
 	baseWsURL   = "wss://rapidtrading-api.liquiditytech.com"
 	httpTimeout = 15 * time.Second
+)
+
+var (
+	ErrStreamClosed = errors.New("ws client was closed")
 )
 
 type Logger interface {
@@ -228,11 +233,16 @@ func (c *Client) NewStream() (wsClient *WsClient, err error) {
 	return wsClient, nil
 }
 
-func (c *Client) SubscribePrice(pairs []string, ch chan *PriceData) (cancel func(), err error) {
+func (c *Client) SubscribePrice(pairs []string, ch chan *PriceData) (cancel func(), errC chan error, err error) {
 	ws, err := c.NewStream()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+	errC = make(chan error)
+	go func() {
+		<-ws.Closed
+		errC <- ErrStreamClosed
+	}()
 	cancel = func() {
 		ws.Close()
 	}
@@ -242,17 +252,22 @@ func (c *Client) SubscribePrice(pairs []string, ch chan *PriceData) (cancel func
 		}
 	}()
 	if _, err = ws.SendReqAndWait(OpSubscribe, ChannelPrice, pairs); err != nil {
-		return nil, err
+		return nil, errC, err
 	}
 	ws.messageHandler = genSubscribeHandler(ChannelPrice, ch)
-	return cancel, nil
+	return cancel, errC, nil
 }
 
-func (c *Client) SubscribeOrderResult(ch chan *OrderResultData) (cancel func(), err error) {
+func (c *Client) SubscribeOrderResult(ch chan *OrderResultData) (cancel func(), errC chan error, err error) {
 	ws, err := c.NewStream()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+	errC = make(chan error)
+	go func() {
+		<-ws.Closed
+		errC <- ErrStreamClosed
+	}()
 	cancel = func() {
 		ws.Close()
 	}
@@ -262,10 +277,10 @@ func (c *Client) SubscribeOrderResult(ch chan *OrderResultData) (cancel func(), 
 		}
 	}()
 	if _, err = ws.SendReqAndWait(OpSubscribe, ChannelOrder, nil); err != nil {
-		return nil, err
+		return nil, errC, err
 	}
 	ws.messageHandler = genSubscribeHandler(ChannelOrder, ch)
-	return cancel, nil
+	return cancel, errC, nil
 }
 
 func genSubscribeHandler[T any](channel Channel, ch chan *T) MessageHandler {

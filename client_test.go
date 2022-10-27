@@ -39,7 +39,7 @@ func TestNewClient(t *testing.T) {
 
 func TestClient_SubscribePrice(t *testing.T) {
 	ch := make(chan *PriceData, 20)
-	cancel, err := c.SubscribePrice(pairs, ch)
+	cancel, errC, err := c.SubscribePrice(pairs, ch)
 	defer cancel()
 	assert.NoError(t, err)
 	count := 0
@@ -65,11 +65,19 @@ func TestClient_SubscribePrice(t *testing.T) {
 	case <-time.After(20 * time.Second):
 		assert.Errorf(t, assert.AnError, "timeout")
 	}
+	cancel()
+	time.Sleep(2 * time.Second)
+	select {
+	case err = <-errC:
+	default:
+	}
+	assert.ErrorIs(t, err, ErrStreamClosed)
+	t.Log(err)
 }
 
 func TestClient_SubscribeOrderResult(t *testing.T) {
 	ch := make(chan *OrderResultData, 20)
-	cancel, err := c.SubscribeOrderResult(ch)
+	cancel, _, err := c.SubscribeOrderResult(ch)
 	defer cancel()
 	assert.NoError(t, err)
 }

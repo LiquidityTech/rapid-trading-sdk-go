@@ -103,7 +103,7 @@ type WsClient struct {
 	count          uint64
 	conn           *websocket.Conn
 	send           chan *ReqMessage
-	closed         chan bool
+	Closed         chan struct{}
 	closedOnce     sync.Once
 	messageHandler MessageHandler
 	callbacks      map[uint64]Callback
@@ -115,7 +115,7 @@ func NewWsClient(conn *websocket.Conn, logger Logger) *WsClient {
 	client := &WsClient{
 		conn:           conn,
 		send:           make(chan *ReqMessage, clientSendChanBuffer),
-		closed:         make(chan bool),
+		Closed:         make(chan struct{}),
 		messageHandler: nil,
 		callbacks:      make(map[uint64]Callback),
 		Logger:         logger,
@@ -230,7 +230,7 @@ func (c *WsClient) writePump() {
 			if err := c.conn.WriteMessage(websocket.PingMessage, nil); err != nil {
 				return
 			}
-		case <-c.closed:
+		case <-c.Closed:
 			return
 		}
 	}
@@ -243,13 +243,13 @@ func (c *WsClient) Close() {
 
 func (c *WsClient) setClose() {
 	c.closedOnce.Do(func() {
-		close(c.closed)
+		close(c.Closed)
 	})
 }
 
 func (c *WsClient) IsClosed() bool {
 	select {
-	case <-c.closed:
+	case <-c.Closed:
 		return true
 	default:
 		return false

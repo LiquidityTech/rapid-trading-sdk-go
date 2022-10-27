@@ -92,6 +92,9 @@ func (c *Client) signParams(params url.Values) (sign string) {
 	sb := strings.Builder{}
 	for _, k := range keys {
 		value := params.Get(k)
+		if value == "" {
+			continue
+		}
 		sb.WriteString(k + "=" + value + "&")
 	}
 	payload := strings.TrimSuffix(sb.String(), "&")

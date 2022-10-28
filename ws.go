@@ -199,6 +199,7 @@ func (c *WsClient) writePump() {
 	for {
 		select {
 		case message, ok := <-c.send:
+			c.Logger.Infof("receive new message")
 			c.conn.SetWriteDeadline(time.Now().Add(writeWait))
 			if !ok {
 				c.conn.WriteMessage(websocket.CloseMessage, []byte{})

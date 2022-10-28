@@ -69,7 +69,7 @@ func NewClient(apiKey, secretKey string) *Client {
 		HTTPClient: &http.Client{
 			Timeout: httpTimeout,
 		},
-		Logger: logImp{log.New(os.Stderr, "[FlashNet] ", log.LstdFlags)},
+		Logger: logImp{log.New(os.Stderr, "[FlashNet] ", log.LstdFlags|log.Lmicroseconds)},
 	}
 }
 
